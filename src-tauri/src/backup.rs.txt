@@ -1,0 +1,90 @@
+use serde::{Deserialize, Serialize};
+use std::fs::OpenOptions;
+use std::io::{self, Seek, SeekFrom, Write};
+use std::fs;
+use hex;
+use tauri::command;
+
+#[derive(Deserialize, Serialize, Clone)]
+struct Offset {
+    name: String,
+    value: Option<u8>,
+    search: Option<String>,
+    offset: Option<String>,
+    on: Option<OffsetValue>,
+    off: Option<OffsetValue>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+struct OffsetValue {
+    value: String,
+}
+
+#[derive(Deserialize, Serialize)]
+struct Offsets {
+    types: Vec<Offset>,
+}
+
+#[derive(Deserialize, Serialize)]
+struct Settings {
+    path: String,
+    devs: String,
+    theme: String,
+}
+
+fn read_offsets_from_file(file_path: &str) -> Result<Offsets, String> {
+    let file_content = fs::read_to_string(file_path).map_err(|e| format!("Error reading file: {}", e))?;
+    let offsets: Offsets = serde_json::from_str(&file_content).map_err(|e| format!("Error parsing JSON: {}", e))?;
+    Ok(offsets)
+}
+
+fn read_settings_from_file(file_path: &str) -> Result<Settings, String> {
+    let file_content = fs::read_to_string(file_path).map_err(|e| format!("Error reading file: {}", e))?;
+    let settings: Settings = serde_json::from_str(&file_content).map_err(|e| format!("Error parsing JSON: {}", e))?;
+    Ok(settings)
+}
+
+#[command]
+fn handle_selection(selected: String) -> Result<String, String> {
+    let settings = read_settings_from_file("src-tauri/src/assets/settings.json")?;
+    let offsets = read_offsets_from_file("src-tauri/src/offsets.json")?;
+    
+    let offset = offsets.types.iter().find(|o| o.name == selected)
+        .ok_or_else(|| format!("Offset not found for selection: {}", selected))?;
+    
+    let offset_value = if selected == "on" {
+        offset.on.clone()
+    } else {
+        offset.off.clone()
+    }.ok_or_else(|| format!("Offset value not found for selection: {}", selected))?;
+    
+    let offset_value_bytes = hex::decode(&offset_value.value.replace(" ", ""))
+        .map_err(|e| format!("Error decoding hex value: {}", e))?;
+    
+    let offset_position = u64::from_str_radix(&offset.offset.as_ref().ok_or_else(|| "Offset not found")?, 16)
+        .map_err(|e| format!("Error parsing offset: {}", e))?;
+    
+    let file_path = format!("{}/pakchunk20.pak", settings.path);
+    modify_value_at_offset(&file_path, offset_position, &offset_value_bytes)?;
+    
+    Ok(format!("Modified offset at {} with value {}", offset_position, offset_value.value))
+}
+
+fn modify_value_at_offset(file_path: &str, offset: u64, new_value: &[u8]) -> Result<(), String> {
+    let mut file = OpenOptions::new().read(true).write(true).open(file_path)
+        .map_err(|e| format!("File open error: {}", e))?;
+    
+    file.seek(SeekFrom::Start(offset)).map_err(|e| format!("Seek error: {}", e))?;
+    file.write_all(new_value).map_err(|e| format!("Write error: {}", e))?;
+    
+    Ok(())
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![handle_selection])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}

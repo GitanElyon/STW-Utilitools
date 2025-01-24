@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tauri App</title>
+  <script type="module" src="/main.js" defer></script>
+</head>
+
+<body>
+  <iframe id="background" src="assets/BackgroundMain.html"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: -1"></iframe>
+
+  <header>
+    <div data-tauri-drag-region id="titlebar" class="title-bar" draggable="false">
+      <img class="title-image tb-item" src="assets/icons/text.svg" alt="Logo" />
+
+      <div>
+        <img id="minimize" class="title-bar-button tb-item" src="assets/icons/minimize.svg" alt="Minimize"
+          draggable="false" />
+        <img id="maximize" class="title-bar-button tb-item" src="assets/icons/maximize.svg" alt="Maximize"
+          draggable="false" />
+        <img id="close" class="title-bar-button tb-item" src="assets/icons/close.svg" alt="Close" draggable="false" />
+      </div>
+    </div>
+
+  </header>
+
+  <main class="container">
+    <button id="print-settings">Print Settings</button>
+    <h1>Dev Builds</h1>
+    <div class="slider-container">
+
+      <div class="select-slider">
+        <div class="slider-group">
+          <input type="radio" name="devs" id="off" value="off" checked>
+          <input type="radio" name="devs" id="full" value="full">
+          <input type="radio" name="devs" id="titan" value="titan">
+          <input type="radio" name="devs" id="hubo" value="hubo">
+
+          <div class="labels">
+            <label for="off">Off</label>
+            <label for="full">Full</label>
+            <label for="titan">Titan</label>
+            <label for="hubo">Hubo</label>
+
+          </div>
+
+          <div class="highlight"></div>
+        </div>
+      </div>
+    </div>
+    <h1>Modify Airstrike (v1.0)</h1>
+
+    <div class="slider">
+      <h2>Intensity</h2>
+      <input type="range" id="intensity-slider" min="0" max="99" value="50">
+    </div>
+
+    <div class="slider">
+      <h2>Duration</h2>
+      <input type="range" id="duration-slider" min="0" max="99" value="50">
+    </div>
+    <h1></h1>
+    <img src="assets/icons/settings.svg" id="settings-icon" class="tb-item" alt="Settings" />
+    <button id="find-offsets">Find Offsets</button>
+  </main>
+
+  <section id="settings" class="settings hidden">
+    <h1>Fortnite Path</h1>
+    <input type="text" id="fortnite-path" placeholder="C:\Program Files\Epic Games\Fortnite" />
+    <p id="version">Version: Beta 0.1.0</p>
+  </section>
+</body>
+
+</html>
