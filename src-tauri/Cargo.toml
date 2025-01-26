@@ -1,9 +1,10 @@
 [package]
-name = "utilitools"
+name = "STW-utilitools"
 version = "0.1.0"
-description = "A Tauri App"
+description = "A simple utility tool for made to easily modify the STW game files."
 authors = ["GitanElyon"]
 edition = "2021"
+repository = "https://github.com/GitanElyon/STW-Utilitools"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

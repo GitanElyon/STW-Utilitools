@@ -3,6 +3,20 @@
 version = 4
 
 [[package]]
+name = "STW-utilitools"
+version = "0.1.0"
+dependencies = [
+ "dirs 4.0.0",
+ "hex",
+ "native-dialog",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4587,20 +4601,6 @@ name = "utf8_iter"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
-
-[[package]]
-name = "utilitools"
-version = "0.1.0"
-dependencies = [
- "dirs 4.0.0",
- "hex",
- "native-dialog",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
-]
 
 [[package]]
 name = "uuid"
