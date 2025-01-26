@@ -1,5 +1,5 @@
 use std::fs::OpenOptions;
-use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::io::{Seek, SeekFrom, Write};
 use serde::Deserialize;
 use std::fs;
 use native_dialog::FileDialog;
@@ -38,7 +38,7 @@ fn print_settings() -> Result<String, String> {
 
 #[tauri::command]
 fn handle_selection(selected: String) -> Result<String, String> {
-    println!("Selected value: {}", selected);
+    // println!("Selected value: {}", selected);
 
     // Read the settings.json file
     let settings_path = Path::new("src/settings.json");
@@ -53,25 +53,49 @@ fn handle_selection(selected: String) -> Result<String, String> {
     // Write the updated content back to the file
     let updated_content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(settings_path, updated_content).map_err(|e| e.to_string())?;
+
+    // Grab offsets from offets.json
+    let offsets_path = Path::new("src/offsets.json");
+    let offsets_content = fs::read_to_string(offsets_path).map_err(|e| e.to_string())?;
+
+    // Parse the JSON content
+    let offsets: Value = serde_json::from_str(&offsets_content).map_err(|e| e.to_string())?;
+    // println!("{:?}", offsets);
+
+    // Find the sepecific offset and offset value for the user selected value
+    // let new_value = offsets[selected]["value"].as_u64().unwrap();
+    if let Some(selected_type) = offsets["types"].as_array().unwrap().iter().find(|&t| t["name"] == selected) {
+        if let (Some(on_value), Some(offset_value)) = (selected_type["on"]["value"].as_str(), selected_type["offset"].as_str()) {
+            println!("Selected '{}' 'on' value: {}, 'offset' value: {}", selected, on_value, offset_value);
+            
+        }
+    }
+
+    // get the path for fortnite from settings.json
+    let path = settings["path"].as_str().unwrap();
+    // println!("{}", path);
+
+    // Modify the value that the user selected using modify_value_at_offset
+    // modify_value_at_offset(path, offset, new_value)
     
     Ok(format!("Received: {}", selected))
 }
 
-#[tauri::command]
-fn modify_value_at_offset(file_path: &str, offset: u64, new_value: u8) -> Result<String, String> {
-    match OpenOptions::new().read(true).write(true).open(file_path) {
-        Ok(mut file) => {
-            if let Err(e) = file.seek(SeekFrom::Start(offset)) {
-                return Err(format!("Seek error: {}", e));
-            }
-            if let Err(e) = file.write_all(&[new_value]) {
-                return Err(format!("Write error: {}", e));
-            }
-            Ok(format!("Value at offset {:#X} modified to {:#X}", offset, new_value))
-        }
-        Err(e) => Err(format!("File open error: {}", e)),
-    }
-}
+// #[tauri::command]
+// fn modify_value_at_offset(file_path: &str, offset: u64, new_value: u8) -> Result<String, String> {
+//     match OpenOptions::new().read(true).write(true).open(file_path) {
+//         Ok(mut file) => {
+//             if let Err(e) = file.seek(SeekFrom::Start(offset)) {
+//                 return Err(format!("Seek error: {}", e));
+//             }
+//             if let Err(e) = file.write_all(&[new_value]) {
+//                 return Err(format!("Write error: {}", e));
+//             }
+//             Ok(format!("Value at offset {:#X} modified to {:#X}", offset, new_value))
+//         }
+//         Err(e) => Err(format!("File open error: {}", e)),
+//     }
+// }
 
 #[tauri::command]
 fn open_files() {

@@ -1,11 +1,6 @@
 {
   "types": [
     {
-      "name": "off",
-      "value": 100,
-      "characters": "This is the first offset"
-    },
-    {
       "name": "full",
       "search": "CNoneSiz8StaicMshComponent0PBWA_M1_DoorC",
       "offset": "107A2169",
