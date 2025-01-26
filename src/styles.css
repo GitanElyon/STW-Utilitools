@@ -41,6 +41,7 @@ body {
   -webkit-app-region: no-drag;
   margin-top: 3px;
   margin-right: 3px;
+  transition: background-color 0.2s ease;
 }
 
 .title-bar-button:hover {

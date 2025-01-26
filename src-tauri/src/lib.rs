@@ -5,6 +5,8 @@ use std::fs;
 use native_dialog::FileDialog;
 use std::fs::File;
 use serde_json::json;
+use std::path::Path;
+use serde_json::Value;
 
 
 
@@ -37,6 +39,21 @@ fn print_settings() -> Result<String, String> {
 #[tauri::command]
 fn handle_selection(selected: String) -> Result<String, String> {
     println!("Selected value: {}", selected);
+
+    // Read the settings.json file
+    let settings_path = Path::new("src/settings.json");
+    let settings_content = fs::read_to_string(settings_path).map_err(|e| e.to_string())?;
+    
+    // Parse the JSON content
+    let mut settings: Value = serde_json::from_str(&settings_content).map_err(|e| e.to_string())?;
+    
+    // Update the "devs" item
+    settings["devs"] = Value::String(selected.clone());
+    
+    // Write the updated content back to the file
+    let updated_content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
+    fs::write(settings_path, updated_content).map_err(|e| e.to_string())?;
+    
     Ok(format!("Received: {}", selected))
 }
 
@@ -67,7 +84,7 @@ fn open_files() {
             println!("You selected: {:?}", path);
 
             // Read the existing settings.json file
-            let settings_path = "C:/Users/arcad/Projects/utilitools/src-tauri/src/settings.json";
+            let settings_path = "src/settings.json";
             let mut settings: serde_json::Value = serde_json::from_reader(File::open(settings_path).expect("Unable to open settings file")).expect("Unable to parse settings file");
 
             // Update the path in the settings
@@ -82,11 +99,17 @@ fn open_files() {
     }
 }
 
+#[tauri::command]
+fn get_devs_value() -> Result<String, String> {
+    let settings = read_settings_from_file("src/settings.json")?;
+    Ok(settings.devs)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, print_settings, handle_selection, modify_value_at_offset, open_files])
+        .invoke_handler(tauri::generate_handler![greet, print_settings, handle_selection, modify_value_at_offset, open_files, get_devs_value])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

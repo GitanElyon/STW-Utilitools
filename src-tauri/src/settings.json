@@ -1,6 +1,5 @@
 {
-    "path": "C:/Users/username/Documents/Fortnite",
-    "devs": "Off",
-    "theme": "System"
-
+  "devs": "off",
+  "path": "unset",
+  "theme": "system"
 }
