@@ -1,14 +1,12 @@
+use native_dialog::FileDialog;
+use serde::Deserialize;
+use serde_json::json;
+use serde_json::Value;
+use std::fs;
+use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
-use serde::Deserialize;
-use std::fs;
-use native_dialog::FileDialog;
-use std::fs::File;
-use serde_json::json;
 use std::path::Path;
-use serde_json::Value;
-
-
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -24,8 +22,10 @@ struct Settings {
 }
 
 fn read_settings_from_file(file_path: &str) -> Result<Settings, String> {
-    let file_content = fs::read_to_string(file_path).map_err(|e| format!("Error reading file: {}", e))?;
-    let settings: Settings = serde_json::from_str(&file_content).map_err(|e| format!("Error parsing JSON: {}", e))?;
+    let file_content =
+        fs::read_to_string(file_path).map_err(|e| format!("Error reading file: {}", e))?;
+    let settings: Settings =
+        serde_json::from_str(&file_content).map_err(|e| format!("Error parsing JSON: {}", e))?;
     Ok(settings)
 }
 
@@ -43,13 +43,32 @@ fn handle_selection(selected: String) -> Result<String, String> {
     // Read the settings.json file
     let settings_path = Path::new("src/settings.json");
     let settings_content = fs::read_to_string(settings_path).map_err(|e| e.to_string())?;
-    
+
     // Parse the JSON content
     let mut settings: Value = serde_json::from_str(&settings_content).map_err(|e| e.to_string())?;
-    
-    // Update the "devs" item
+
+    // save the previous selected value so we know what to change back to
+    let previous_selected = settings["devs"].as_str().unwrap().to_string();
+
+    // Update the "devs" item to the new selected value
     settings["devs"] = Value::String(selected.clone());
-    
+
+    // check if fortnite path is correct
+    // default path is C:\Program Files\Epic Games\Fortnite\
+    let path = settings["path"].as_str().unwrap();
+    if !Path::new(path).exists() {
+        let alt_path = "C:\\Documents\\Fortnite\\";
+
+        if !Path::new(alt_path).exists() {
+            // if it cant find the default path, check the alt path
+            // if it exists, update the path in settings.json
+            settings["path"] = Value::String(alt_path.to_string());
+        } else {
+            // if it cant find the default path or the alt path, return an error
+            return Err(format!("Could not find path at: {}", alt_path));
+        }
+    }
+
     // Write the updated content back to the file
     let updated_content = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(settings_path, updated_content).map_err(|e| e.to_string())?;
@@ -61,24 +80,87 @@ fn handle_selection(selected: String) -> Result<String, String> {
     // Parse the JSON content
     let offsets: Value = serde_json::from_str(&offsets_content).map_err(|e| e.to_string())?;
     // println!("{:?}", offsets);
+    println!("{:?}", offsets["types"]["off"]["value"].as_str());
 
+    println!("Previous Selected: {}", previous_selected);
     // Find the sepecific offset and offset value for the user selected value
-    // let new_value = offsets[selected]["value"].as_u64().unwrap();
-    if let Some(selected_type) = offsets["types"].as_array().unwrap().iter().find(|&t| t["name"] == selected) {
-        if let (Some(on_value), Some(offset_value)) = (selected_type["on"]["value"].as_str(), selected_type["offset"].as_str()) {
-            println!("Selected '{}' 'on' value: {}, 'offset' value: {}", selected, on_value, offset_value);
-            
+    // checks if the user selected a value that is in offsets.json
+    if let Some(selected_type) = offsets["types"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|&t| t["name"] == selected)
+    {
+         
+        if let (Some(on_value), Some(offset_value)) = (
+            selected_type["on"]["value"].as_str(),
+            selected_type["offset"].as_str(),
+        ) {
+            println!(
+                "Selected '{}' 'on' value: {}, 'offset' value: {}",
+                selected, on_value, offset_value
+            );
+            println!("Path: {}", settings["path"].as_str().unwrap());
+        } else {
+            // notify the user to update their offsets using the 'update_offsets' button
+            println!("Could not find 'on' or 'offset' value for: {}", selected);
+            return Err(format!(
+                "Could not find 'on' or 'offset' value for: {}",
+                selected
+            ));
+        }
+    // if its not in offsets.json, the user has selected off, so we can set the offsets to their off values (previous_selected)
+    } else if let Some(offsets) = offsets["types"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|&t| t["name"] == previous_selected)
+    {
+        // this means the user selected the "off" value and we can set the offets to their off value
+        if let (Some(off_value), Some(offset_value)) =
+            (offsets["off"]["value"].as_str(), offsets["offset"].as_str())
+        {
+            println!(
+                "Selected '{}' 'off' value: {}, 'offset' value: {}",
+                selected, off_value, offset_value
+            );
+            println!("Path: {}", settings["path"].as_str().unwrap());
+        } else {
+            // notify the user to update their offets using the 'update_offsets' button
+            println!("Could not find 'off' or 'offset' value for: {}", selected);
+            return Err(format!(
+                "Could not find 'off' or 'offset' value for: {}",
+                selected
+            ));
         }
     }
 
     // get the path for fortnite from settings.json
-    let path = settings["path"].as_str().unwrap();
+    // let path = settings["path"].as_str().unwrap();
     // println!("{}", path);
 
     // Modify the value that the user selected using modify_value_at_offset
     // modify_value_at_offset(path, offset, new_value)
-    
+
     Ok(format!("Received: {}", selected))
+}
+
+fn modify_value_at_offset(file_path: &str, offset: u64, new_value: u8) -> Result<String, String> {
+    match OpenOptions::new().read(true).write(true).open(file_path) {
+        Ok(mut file) => {
+            if let Err(e) = file.seek(SeekFrom::Start(offset)) {
+                return Err(format!("Seek error: {}", e));
+            }
+            if let Err(e) = file.write_all(&[new_value]) {
+                return Err(format!("Write error: {}", e));
+            }
+            Ok(format!(
+                "Value at offset {:#X} modified to {:#X}",
+                offset, new_value
+            ))
+        }
+        Err(e) => Err(format!("File open error: {}", e)),
+    }
 }
 
 // #[tauri::command]
@@ -109,15 +191,23 @@ fn open_files() {
 
             // Read the existing settings.json file
             let settings_path = "src/settings.json";
-            let mut settings: serde_json::Value = serde_json::from_reader(File::open(settings_path).expect("Unable to open settings file")).expect("Unable to parse settings file");
+            let mut settings: serde_json::Value = serde_json::from_reader(
+                File::open(settings_path).expect("Unable to open settings file"),
+            )
+            .expect("Unable to parse settings file");
 
             // Update the path in the settings
             settings["path"] = json!(path.to_str().unwrap());
 
             // Write the updated settings back to the file
             let mut file = File::create(settings_path).expect("Unable to create settings file");
-            file.write_all(serde_json::to_string_pretty(&settings).expect("Unable to serialize settings").as_bytes()).expect("Unable to write to settings file");
-        },
+            file.write_all(
+                serde_json::to_string_pretty(&settings)
+                    .expect("Unable to serialize settings")
+                    .as_bytes(),
+            )
+            .expect("Unable to write to settings file");
+        }
         Ok(None) => println!("No directory selected"),
         Err(e) => println!("Error: {:?}", e),
     }
@@ -133,7 +223,13 @@ fn get_devs_value() -> Result<String, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, print_settings, handle_selection, modify_value_at_offset, open_files, get_devs_value])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            print_settings,
+            handle_selection,
+            /*modify_value_at_offset,*/ open_files,
+            get_devs_value
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
