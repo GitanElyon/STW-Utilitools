@@ -259,8 +259,39 @@ h2 {
 /*           Settings             */
 /* ============================== */
 
+#open-files {
+  color: rgb(126, 84, 171);
+  font-size: 1em;
+  padding: 7px;
+  border-radius: 10px;
+  border: none;
+  background-color: #3333334a;
+  transition: background-color 0.3s ease;
+}
 
-#v {
+#open-files:hover {
+  background-color: #5538717a;
+}
+
+#fortnite-path {
+  background-color: #3333334a;
+  color: white;
+  font-size: 1em;
+  padding: 10px;
+  border-radius: 10px;
+  width: 85%;
+  border: none;
+  margin-left: 5px;
+  outline: none;
+}
+
+.file-input {
+  display: flex;
+  align-items: center;
+  margin: 3%;
+}
+
+#version {
   color: rgb(126, 84, 171);
   font-size: 1.2em;
   margin: 3%;
@@ -268,4 +299,24 @@ h2 {
   position: fixed;
   bottom: 0;
   right: 0;
+}
+
+#back-button {
+  color: rgb(126, 84, 171);
+  font-size: 1em;
+  margin: 3%;
+  padding: 0;
+  position: fixed;
+  border-radius: 10%;
+  background: rgba(111, 111, 111, 0.142);
+  padding: 3px;
+  border: none;
+  bottom: 0;
+  left: 0;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#back-button:hover {
+  background: rgba(102, 60, 150, 0.342);
 }

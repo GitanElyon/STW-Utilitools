@@ -28,7 +28,7 @@
 
   </header>
 
-  <main class="container">
+  <main class="container" id="main">
     <button id="print-settings">Print Settings</button>
     <h1>Dev Builds</h1>
     <div class="slider-container">
@@ -70,8 +70,13 @@
 
   <section id="settings" class="settings hidden">
     <h1>Fortnite Path</h1>
-    <input type="text" id="fortnite-path" placeholder="C:\Program Files\Epic Games\Fortnite" />
-    <p id="version">Version: Beta 0.1.0</p>
+    <div class="file-input">
+      <img src="assets/icons/files.svg" id="open-files" class="" alt="Open-Files" />
+      <input type="text" id="fortnite-path" placeholder="C:\Program Files\Epic Games\Fortnite" />
+    </div>
+    <h2>Made by: GitanElyon</h2>
+    <p id="version">Version: Alpha-0.1.0</p>
+    <button id="back-button">Back</button>
   </section>
 </body>
 
