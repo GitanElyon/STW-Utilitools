@@ -210,7 +210,7 @@ h2 {
 
 .slider input[type="range"] {
   flex-grow: 1;
-  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 8px;
   background: rgba(127, 127, 127, 0.249);
@@ -221,7 +221,7 @@ h2 {
 }
 
 .slider input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
+  appearance: none;
   width: 15px;
   height: 15px;
   background: rgb(115, 81, 149);
@@ -291,6 +291,13 @@ h2 {
   display: flex;
   align-items: center;
   margin: 3%;
+}
+
+#disclaimer {
+  color: rgb(126, 84, 171);
+  font-size: 1em;
+  padding: 0;
+  font-weight: 900;
 }
 
 #version {
