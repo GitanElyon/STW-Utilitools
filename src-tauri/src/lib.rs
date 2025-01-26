@@ -24,7 +24,7 @@ fn read_settings_from_file(file_path: &str) -> Result<Settings, String> {
 
 #[tauri::command]
 fn print_settings() -> Result<String, String> {
-    let settings = read_settings_from_file("settings.json")?; //src\assets\settings.json
+    let settings = read_settings_from_file("/src/settings.json")?;
     println!("Settings: {:?}", settings);
     Ok(format!("Settings: {:?}", settings))
 }
