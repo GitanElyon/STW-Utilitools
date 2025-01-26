@@ -14,6 +14,8 @@ I'll make this later, for right now I'm just gonna say: If you cant figure out, 
 
 Im using it for testing, you should also probably be using it for testing.
 
+If you want to compile it yourself, download [bun](https://bun.sh/) and [rust](https://rustup.rs/). Open the source directory, run `bun install` then `bun run tauri dev`. (yes it takes a second to compile. Its Rust, what do you expect?)
+
 # Offsets
 
 If you are just here for the offsets here they are.
