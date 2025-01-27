@@ -55,16 +55,18 @@ fn handle_selection(selected: String) -> Result<String, String> {
 
     // check if fortnite path is correct
     // default path is C:\Program Files\Epic Games\Fortnite\
-    let path = settings["path"].as_str().unwrap();
-    if !Path::new(path).exists() {
+    let current_path = settings["path"].as_str().unwrap().to_string();
+    if !Path::new(&current_path).exists() {
         let alt_path = "C:\\Documents\\Fortnite\\";
 
         if !Path::new(alt_path).exists() {
             // if it cant find the default path, check the alt path
             // if it exists, update the path in settings.json
+            println!("Could not find default path at: {}", current_path);
             settings["path"] = Value::String(alt_path.to_string());
         } else {
             // if it cant find the default path or the alt path, return an error
+            println!("Could not find alt path at: {}", alt_path);
             return Err(format!("Could not find path at: {}", alt_path));
         }
     }
@@ -91,24 +93,16 @@ fn handle_selection(selected: String) -> Result<String, String> {
         .iter()
         .find(|&t| t["name"] == selected)
     {
-         
-        if let (Some(on_value), Some(offset_value)) = (
-            selected_type["on"]["value"].as_str(),
-            selected_type["offset"].as_str(),
-        ) {
-            println!(
-                "Selected '{}' 'on' value: {}, 'offset' value: {}",
-                selected, on_value, offset_value
-            );
-            println!("Path: {}", settings["path"].as_str().unwrap());
-        } else {
-            // notify the user to update their offsets using the 'update_offsets' button
-            println!("Could not find 'on' or 'offset' value for: {}", selected);
-            return Err(format!(
-                "Could not find 'on' or 'offset' value for: {}",
-                selected
-            ));
-        }
+        let on_value = selected_type["on"]["value"].as_str().unwrap();
+        let offset_value = selected_type["offset"].as_str().unwrap();
+
+        println!(
+            "Selected '{}' 'on' value: {}, 'offset' value: {}",
+            selected, on_value, offset_value
+        );
+        println!("Path: {}", settings["path"].as_str().unwrap());
+        // modify_value_at_offset(&current_path, offset_value.parse().unwrap(), on_value.parse().unwrap());
+
     // if its not in offsets.json, the user has selected off, so we can set the offsets to their off values (previous_selected)
     } else if let Some(offsets) = offsets["types"]
         .as_array()
@@ -117,30 +111,16 @@ fn handle_selection(selected: String) -> Result<String, String> {
         .find(|&t| t["name"] == previous_selected)
     {
         // this means the user selected the "off" value and we can set the offets to their off value
-        if let (Some(off_value), Some(offset_value)) =
-            (offsets["off"]["value"].as_str(), offsets["offset"].as_str())
-        {
-            println!(
-                "Selected '{}' 'off' value: {}, 'offset' value: {}",
-                selected, off_value, offset_value
-            );
-            println!("Path: {}", settings["path"].as_str().unwrap());
-        } else {
-            // notify the user to update their offets using the 'update_offsets' button
-            println!("Could not find 'off' or 'offset' value for: {}", selected);
-            return Err(format!(
-                "Could not find 'off' or 'offset' value for: {}",
-                selected
-            ));
-        }
+        let off_value = offsets["off"]["value"].as_str().unwrap();
+        let offset_value = offsets["offset"].as_str().unwrap();
+
+        println!(
+            "Selected '{}' 'off' value: {}, 'offset' value: {}",
+            selected, off_value, offset_value
+        );
+        println!("Path: {}", settings["path"].as_str().unwrap());
+        // modify_value_at_offset(&current_path, offset_value.parse().unwrap(), off_value.parse().unwrap());
     }
-
-    // get the path for fortnite from settings.json
-    // let path = settings["path"].as_str().unwrap();
-    // println!("{}", path);
-
-    // Modify the value that the user selected using modify_value_at_offset
-    // modify_value_at_offset(path, offset, new_value)
 
     Ok(format!("Received: {}", selected))
 }
